@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RP Чат</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            padding: 20px;
+        }
+        .chat-box {
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+            margin-bottom: 10px;
+        }
+        .message {
+            padding: 5px 10px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        .message:last-child {
+            border-bottom: none;
+        }
+        .input-container {
+            display: flex;
+        }
+        .input-container input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .input-container button {
+            padding: 10px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .input-container button:hover {
+            background-color: #218838;
+        }
+        .username-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .username-container input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .username-container button {
+            padding: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .username-container button:hover {
+            background-color: #0056b3;
+        }
+        #fight-button {
+            padding: 10px;
+            border: none;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #fight-button:hover {
+            background-color: #c82333;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
+        .character-list button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .character-list button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="username-container" class="username-container">
+        <input type="text" id="username-input" placeholder="Введите ваше имя РП">
+        <button onclick="setUsername()">Войти</button>
+    </div>
+    <div id="chat-container" class="chat-container" style="display: none;">
+        <div id="chat-header">
+            <span id="username-display"></span>
+            <button onclick="renameUsername()">Переименовать</button>
+            <button id="fight-button" onclick="openFightModal()">Бой</button>
+        </div>
+        <div id="chat-box" class="chat-box">
+            <!-- Сообщения будут добавляться здесь -->
+        </div>
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Введите сообщение">
+            <button onclick="sendMessage()">Отправить</button>
+        </div>
+    </div>
+
+    <div id="fight-modal" class="modal">
+        <div class="modal-content">
+            <h2>Выберите персонажей</h2>
+            <div class="character-list">
+                <button onclick="selectCharacter('Виндовс мен', 1)">Виндовс мен</button>
+                <button onclick="selectCharacter('Симбиот', 1)">Симбиот</button>
+                <button onclick="selectCharacter('Crysalrt', 1)">Crysalrt</button>
+                <button onclick="selectCharacter('Crydiaa', 1)">Crydiaa</button>
+                <button onclick="selectCharacter('полицейский', 1)">полицейский</button>
+                <button onclick="selectCharacter('ОМОН', 1)">ОМОН</button>
+                <button onclick="selectCharacter('Аури', 1)">Аури</button>
+                <button onclick="selectCharacter('Эйл', 1)">Эйл</button>
+                <button onclick="selectCharacter('Спецназ', 1)">Спецназ</button>
+                <button onclick="selectCharacter('Военные', 1)">Военные</button>
+                <button onclick="selectCharacter('Виндовс мен титан', 1)">Виндовс мен титан</button>
+                <button onclick="selectCharacter('Aplee men', 1)">Aplee men</button>
+                <button onclick="selectCharacter('Canvi Room men', 1)">Canvi Room men</button>
+            </div>
+            <div id="player2-wait" style="display: none;">Ожидание выбора второго игрока...</div>
+        </div>
+    </div>
+
+    <script>
+        let username = '';
+        let player1Character = '';
+        let player2Character = '';
+        let playerNumber = 0;
+
+        function setUsername() {
+            const usernameInput = document.getElementById('username-input');
+            username = usernameInput.value.trim();
+
+            if (username !== '') {
+                document.getElementById('username-container').style.display = 'none';
+                document.getElementById('chat-container').style.display = 'flex';
+                document.getElementById('username-display').textContent = `Ваш ник: ${username}`;
+            }
+        }
+
+        function renameUsername() {
+            document.getElementById('username-container').style.display = 'flex';
+            document.getElementById('chat-container').style.display = 'none';
+        }
+
+        function sendMessage() {
+            const chatBox = document.getElementById('chat-box');
+            const messageInput = document.getElementById('message-input');
+            const messageText = messageInput.value.trim();
+
+            if (messageText !== '') {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.textContent = `${username}: ${messageText}`;
+                chatBox.appendChild(messageElement);
+                messageInput.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        document.getElementById('message-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function openFightModal() {
+            playerNumber = 1;
+            document.getElementById('fight-modal').style.display = 'flex';
+        }
+
+        function selectCharacter(character, player) {
+            if (player === 1) {
+                player1Character = character;
+                document.getElementById('player2-wait').style.display = 'block';
+                playerNumber = 2;
+            } else if (player === 2) {
+                player2Character = character;
+                startFight();
+            }
+        }
+
+        function startFight() {
+            alert(`Бой начался между ${player1Character} и ${player2Character}!`);
+            document.getElementById('fight-modal').style.display = 'none';
+            player1Character = '';
+            player2Character = '';
+            playerNumber = 0;
+        }
+    </script>
+</body>
+</html>
